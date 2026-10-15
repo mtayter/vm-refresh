@@ -1,0 +1,9 @@
+# Local config — never commit. Holds the side-chat ID + this VM's actions.
+config.json
+
+# Generated live hook definition (installer output) — the template is committed.
+vm-refresh-check.json
+
+*.bak
+*.log
+.DS_Store

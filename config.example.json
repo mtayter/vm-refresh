@@ -1,0 +1,28 @@
+{
+    "_notes": "Copy to ~/.config/vm-refresh/config.json (mode 0600) and fill in side_chat_id. recovery_actions run in order on every VM replacement; the hook retries until the persistent agent confirms the respawn, so every action MUST be idempotent. The first action restores the persistent SSH config that VM replacement wipes. Add one 'run' action per detached service loop your VM owns (each must guard against double-start, e.g. via a pid file); never add the persistent listener here — the side chat spawns it so it keeps its stdout handoff.",
+    "hook_definition_dest": "~/hooks/definitions/vm-refresh-check.json",
+    "hook_script_dest": "~/hooks/scripts/vm-refresh-check.sh",
+    "last_boot_file": "~/.last_boot_id",
+    "recovery_actions": [
+        {
+            "continue_on_error": false,
+            "dest": "/root/.ssh/config",
+            "if_missing": true,
+            "mode": "0600",
+            "name": "restore-root-ssh-config",
+            "source": "~/.ssh/config",
+            "type": "restore-file"
+        },
+        {
+            "_notes": "Example only (disabled). Replace with your own service loop. The loop must be safe to start detached (it logs to a file) and must not double-start on duplicate wakes.",
+            "command": "setsid bash ~/hooks/scripts/<your-service>-loop.sh >> ~/workspace/<your-service>/worker.log 2>&1 < /dev/null &",
+            "continue_on_error": true,
+            "enabled": false,
+            "name": "example-respawn-detached-service-loop",
+            "type": "run"
+        }
+    ],
+    "recovery_script_dest": "~/hooks/scripts/vm-boot-recovery.sh",
+    "side_chat_id": "YOUR_SIDE_CHAT_ID_HERE",
+    "version": 1
+}

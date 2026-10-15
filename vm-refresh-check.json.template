@@ -1,0 +1,14 @@
+{
+    "delivery": {
+        "surface": "side_chat",
+        "to": "YOUR_SIDE_CHAT_ID_HERE"
+    },
+    "enabled": true,
+    "id": "vm-refresh-check",
+    "poll_interval_secs": 15,
+    "presentation_locale": "en-US",
+    "prompt": "You are a pass-through reporter. The vm-refresh-check hook woke because the VM was replaced (boot_id changed).\n\nOutput a brief report to the side chat saying:\n\"VM replacement detected (old boot_id X, new boot_id Y). The recovery dispatcher has already run. The persistent listener needs to be respawned from the side chat.\"\n\nAfter respawning, update the stored boot ID (cat /proc/sys/kernel/random/boot_id > ~/.last_boot_id) to confirm the respawn — until then the hook keeps waking on every poll.\n\nDo NOT spawn the listener yourself. Do NOT run background processes. The side chat (persistent agent) will handle the spawn — your spawns get reaped when your run ends.\n\nKeep it to 2-3 sentences.",
+    "script_path": "~/hooks/scripts/vm-refresh-check.sh",
+    "script_timeout_secs": 600,
+    "version": 1
+}
