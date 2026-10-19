@@ -135,7 +135,7 @@ fi
 # Render the template with the side-chat ID from the config. The ID is
 # read from the config file inside Python — never printed or argv-passed.
 python3 - "$CONFIG" "$SCRIPT_DIR/vm-refresh-check.json.template" "$HOOK_DEF_DEST" <<'PYEOF'
-import json, sys
+import json, sys, time
 cfg = json.load(open(sys.argv[1]))
 sid = cfg.get("side_chat_id", "")
 assert sid and sid != "YOUR_SIDE_CHAT_ID_HERE", "side_chat_id missing or placeholder"
@@ -143,8 +143,20 @@ text = open(sys.argv[2]).read()
 assert "YOUR_SIDE_CHAT_ID_HERE" in text, "template missing placeholder"
 text = text.replace("YOUR_SIDE_CHAT_ID_HERE", sid)
 assert "YOUR_SIDE_CHAT_ID_HERE" not in text, "placeholder survived rendering"
-json.loads(text)  # rendered definition must be valid JSON
-open(sys.argv[3], "w").write(text)
+obj = json.loads(text)  # rendered definition must be valid JSON
+# The hook system requires created_at_ms (set by the hooks API on add).
+# install.sh writes the file directly, so it must preserve/set it here,
+# or the definition parses as invalid and the hook stops polling.
+now_ms = int(time.time() * 1000)
+existing_created = None
+try:
+    existing = json.load(open(sys.argv[3]))
+    existing_created = existing.get("created_at_ms")
+except Exception:
+    existing_created = None
+obj["created_at_ms"] = existing_created if isinstance(existing_created, int) else now_ms
+obj["updated_at_ms"] = now_ms
+open(sys.argv[3], "w").write(json.dumps(obj, indent=4) + "\n")
 PYEOF
 say "Rendered live hook definition -> $HOOK_DEF_DEST"
 say "Install complete. The hook takes effect when the hook system next loads the definition."
